@@ -200,14 +200,6 @@ class PortPlanningAnalysisWidget:
     parametersFormLayout.addRow("Skin Model: ", self.skinModelSelector)
 
     ##
-    ## check box to trigger taking screen shots for later use in tutorials
-    ##
-    #self.enableScreenshotsFlagCheckBox = qt.QCheckBox()
-    #self.enableScreenshotsFlagCheckBox.checked = 0
-    #self.enableScreenshotsFlagCheckBox.setToolTip("If checked, take screen shots for tutorials. Use Save Data to write them to disk.")
-    #parametersFormLayout.addRow("Enable Screenshots", self.enableScreenshotsFlagCheckBox)
-
-    ##
     ## scale factor for screen shots
     ##
     #self.screenshotScaleFactorSliderWidget = ctk.ctkSliderWidget()
@@ -317,19 +309,19 @@ class PortPlanningAnalysisWidget:
     
     (score, mind, mindp) = logic.runPointWise(targetPointA, targetPointB, targetPointC, obstacleModel, skinModel)
 
-    self.minimumDistance.text = (mindA + mindB + mindC) / 3
-      
-    markupNode = self.minimumDistancePoint.currentNode()
-    if markupNode != None:
-      markupNode.RemoveAllMarkups()
-      displayNode = markupNode.GetDisplayNode()
-      if displayNode != None:
+    self.minimumDistance.text = mind
+          
+#    markupNode = self.minimumDistancePoint.currentNode()
+#   if markupNode != None:
+#     markupNode.RemoveAllMarkups()
+#     displayNode = markupNode.GetDisplayNode()
+#     if displayNode != None:
  
-        	# Change these values to modified fiducial and text size
-    		displayNode.SetGlyphScale(0.5)
-    		displayNode.SetTextScale(0.5)
-      vtkMinDistPoint = vtk.vtkVector3d(mindpB)
-      markupNode.AddPointToNewMarkup(vtkMinDistPoint)
+#       	# Change these values to modified fiducial and text size
+#   		displayNode.SetGlyphScale(0.5)
+#   		displayNode.SetTextScale(0.5)
+#     vtkMinDistPoint = vtk.vtkVector3d(mindpB)
+#     markupNode.AddPointToNewMarkup(vtkMinDistPoint)
       
     #  end = time.time()
     # print end - start
@@ -472,9 +464,11 @@ class PortPlanningAnalysisLogic:
     annotationLogic.CreateSnapShot(name, description, type, self.screenshotScaleFactor, imageData)
 
 
-  def calcApproachScoreA(self, pointA, skinPolyData, obstacleBspTree, skinModelNode=None):
+  def calcApproachScore(self, pointA, pointB, pointC, skinPolyData, obstacleBspTree, skinModelNode=None):
 
     pTargetA = pointA
+    pTargetB = pointB
+    pTargetC = pointC
     polyData = skinPolyData
     nPoints = polyData.GetNumberOfPoints()
     nCells = polyData.GetNumberOfCells()
@@ -529,7 +523,7 @@ class PortPlanningAnalysisLogic:
           if skinModelNode != None:
             d = (vtk.vtkMath.Distance2BetweenPoints(pSurface, pTargetA) + vtk.vtkMath.Distance2BetweenPoints(pSurface, pTargetB) + vtk.vtkMath.Distance2BetweenPoints(pSurface, pTargetC)) / 3
             d = math.sqrt(d)
-            if 50 < d < 200: 
+            if 100 < d < 240: 
               if d < minDistance or minDistance < 0:
                 minDistance = d
                 minDistancePoint = [pSurface[0],pSurface[1],pSurface[2]]
@@ -545,7 +539,7 @@ class PortPlanningAnalysisLogic:
               pointValue.InsertValue(ids.GetId(0), v)
               pointValue.InsertValue(ids.GetId(1), v)
               pointValue.InsertValue(ids.GetId(2), v)
-              inaccessibleArea = inaccessibleArea + are
+              inaccessibleArea = inaccessibleArea + area
         else:
           if skinModelNode != None:
             v = -1.0
@@ -558,7 +552,7 @@ class PortPlanningAnalysisLogic:
         print ("ERROR: Non-triangular cell.")
 
     
-    score = accessibleArea / (accessibleArea + inaccessibleArea)
+    score = accessibleArea
 
     if skinModelNode != None:
       skinModelNode.AddPointScalars(pointValue)
@@ -580,7 +574,7 @@ class PortPlanningAnalysisLogic:
 
 #    poly = skinModelNode.GetPolyData()
 #    polyDataNormals = vtk.vtkPolyDataNormals()
-#    polyDataNormals.SetInput(poly)
+#    polyDataNormals.SetInputData(poly)
 #    polyDataNormals.ComputeCellNormalsOn()
 #    polyDataNormals.Update()
 #    polyData = polyDataNormals.GetOutput()
@@ -623,7 +617,7 @@ class PortPlanningAnalysisLogic:
     pTargetC = [tPointC[0], tPointC[1], tPointC[2]]    
     poly = skinModelNode.GetPolyData()
     polyDataNormals = vtk.vtkPolyDataNormals()
-    polyDataNormals.SetInput(poly)
+    polyDataNormals.SetInputData(poly)
     polyDataNormals.ComputeCellNormalsOn()
     polyDataNormals.Update()
     polyData = polyDataNormals.GetOutput()
@@ -634,7 +628,7 @@ class PortPlanningAnalysisLogic:
 
     (score, mind, mindp) = self.calcApproachScore(pTargetA, pTargetB, pTargetC, polyData, bspTree, skinModelNode)
 
-    print ("Approach Score (<accessible area> / (<accessible area> + <inaccessible area>)) = %f" % (score))
+    print ("Approach Score (<accessible area>) = %f" % (score))
     print ("Minmum Distance = %f" % (mind))
 
     return (score, mind, mindp)
