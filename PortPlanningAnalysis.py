@@ -4,6 +4,7 @@ import string
 from __main__ import vtk, qt, ctk, slicer
 import time
 import math
+import string
 
 #
 # PortPlanningAnalysis
@@ -103,33 +104,33 @@ class PortPlanningAnalysisWidget:
     self.targetSelectorA.showChildNodeTypes = False
     self.targetSelectorA.setMRMLScene( slicer.mrmlScene )
     self.targetSelectorA.setToolTip( "Pick up the target point A" )
-    parametersFormLayout.addRow("Target Point A: ", self.targetSelectorA)
+    parametersFormLayout.addRow("Target Points List: ", self.targetSelectorA)
 
 # Target point B(vtkMRMLMarkupsFiducialNode)
     #
-    self.targetSelectorB = slicer.qMRMLNodeComboBox()
-    self.targetSelectorB.nodeTypes = ( ("vtkMRMLMarkupsFiducialNode"), "" )
-    self.targetSelectorB.addEnabled = False
-    self.targetSelectorB.removeEnabled = False
-    self.targetSelectorB.noneEnabled = True
-    self.targetSelectorB.showHidden = False
-    self.targetSelectorB.showChildNodeTypes = False
-    self.targetSelectorB.setMRMLScene( slicer.mrmlScene )
-    self.targetSelectorB.setToolTip( "Pick up the target point B" )
-    parametersFormLayout.addRow("Target Point B: ", self.targetSelectorB)
+    #self.targetSelectorB = slicer.qMRMLNodeComboBox()
+    #self.targetSelectorB.nodeTypes = ( ("vtkMRMLMarkupsFiducialNode"), "" )
+    #self.targetSelectorB.addEnabled = False
+    #self.targetSelectorB.removeEnabled = False
+    #self.targetSelectorB.noneEnabled = True
+    #self.targetSelectorB.showHidden = False
+    #self.targetSelectorB.showChildNodeTypes = False
+    #self.targetSelectorB.setMRMLScene( slicer.mrmlScene )
+    #self.targetSelectorB.setToolTip( "Pick up the target point B" )
+    #parametersFormLayout.addRow("Target Point B: ", self.targetSelectorB)
     
 # Target point C(vtkMRMLMarkupsFiducialNode)
     #
-    self.targetSelectorC = slicer.qMRMLNodeComboBox()
-    self.targetSelectorC.nodeTypes = ( ("vtkMRMLMarkupsFiducialNode"), "" )
-    self.targetSelectorC.addEnabled = False
-    self.targetSelectorC.removeEnabled = False
-    self.targetSelectorC.noneEnabled = True
-    self.targetSelectorC.showHidden = False
-    self.targetSelectorC.showChildNodeTypes = False
-    self.targetSelectorC.setMRMLScene( slicer.mrmlScene )
-    self.targetSelectorC.setToolTip( "Pick up the target point C" )
-    parametersFormLayout.addRow("Target Point C: ", self.targetSelectorC)    
+    #self.targetSelectorC = slicer.qMRMLNodeComboBox()
+    #self.targetSelectorC.nodeTypes = ( ("vtkMRMLMarkupsFiducialNode"), "" )
+    #self.targetSelectorC.addEnabled = False
+    #self.targetSelectorC.removeEnabled = False
+    #self.targetSelectorC.noneEnabled = True
+    #self.targetSelectorC.showHidden = False
+    #self.targetSelectorC.showChildNodeTypes = False
+    #self.targetSelectorC.setMRMLScene( slicer.mrmlScene )
+    #self.targetSelectorC.setToolTip( "Pick up the target point C" )
+    #parametersFormLayout.addRow("Target Point C: ", self.targetSelectorC)    
     
     #
     # target model (vtkMRMLScalarVolumeNode)
@@ -221,8 +222,8 @@ class PortPlanningAnalysisWidget:
     # connections
     self.applyButton.connect('clicked(bool)', self.onApplyButton)
     self.targetSelectorA.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-    self.targetSelectorB.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-    self.targetSelectorC.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    #self.targetSelectorB.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    #self.targetSelectorC.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
 #   self.targetLabelSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.obstacleModelSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.skinModelSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
@@ -272,6 +273,30 @@ class PortPlanningAnalysisWidget:
     self.minimumDistancePoint.baseName = "Port-MinimumDistance"
     outputFormLayout.addRow("Minimum Distance Point: ", self.minimumDistancePoint)
     
+
+    #
+    # Check box for displaying color map
+    #
+    self.colorMapCheckBox = ctk.ctkCheckBox()
+    self.colorMapCheckBox.text = "Color Mapped Skin"
+    self.colorMapCheckBox.enabled = False
+    self.colorMapCheckBox.checked = True
+    outputFormLayout.addRow(self.colorMapCheckBox)
+
+    self.colorMapCheckBox.connect("clicked(bool)", self.onCheckColorMappedSkin)
+
+    #
+    # Opacity slider
+    #
+    self.coloredSkinModelOpacitySlider = ctk.ctkSliderWidget()
+    self.coloredSkinModelOpacitySlider.decimals = 0
+    self.coloredSkinModelOpacitySlider.maximum = 1000
+    self.coloredSkinModelOpacitySlider.minimum = 0
+    self.coloredSkinModelOpacitySlider.value = 1000
+    self.coloredSkinModelOpacitySlider.enabled = False
+    outputFormLayout.addRow("      Opacity:", self.coloredSkinModelOpacitySlider)
+    self.coloredSkinModelOpacitySlider.connect('valueChanged(double)', self.skinModelOpacitySliderValueChanged)
+
     # Add vertical spacer
     self.layout.addStretch(1)
 
@@ -279,7 +304,8 @@ class PortPlanningAnalysisWidget:
     pass
 
   def onSelect(self):
-    if (self.targetSelectorA.currentNode() != None) and (self.targetSelectorB.currentNode() != None) and (self.targetSelectorC.currentNode() != None) and (self.obstacleModelSelector.currentNode() != None) and (self.skinModelSelector.currentNode() != None):
+    #if (self.targetSelectorA.currentNode() != None) and (self.targetSelectorB.currentNode() != None) and (self.targetSelectorC.currentNode() != None) and (self.obstacleModelSelector.currentNode() != None) and (self.skinModelSelector.currentNode() != None):
+    if (self.targetSelectorA.currentNode() != None) and (self.obstacleModelSelector.currentNode() != None) and (self.skinModelSelector.currentNode() != None):
       self.applyButton.enabled = True
 #  elif (self.targetSelectorA.currentNode() == None) and (self.targetSelectorB.currentNode() != None) and (self.targetSelectorC.currentNode() != None) and (self.obstacleModelSelector.currentNode() != None) and (self.skinModelSelector.currentNode() != None):
 #  self.applyButton.enabled = True
@@ -303,13 +329,20 @@ class PortPlanningAnalysisWidget:
 #     print("point")
 
     targetPointA = self.targetSelectorA.currentNode()
-    targetPointB = self.targetSelectorB.currentNode()
-    targetPointC = self.targetSelectorC.currentNode()
+    #targetPointB = self.targetSelectorB.currentNode()
+    #targetPointC = self.targetSelectorC.currentNode()
+
     # start = time.time()
     
-    (score, mind, mindp) = logic.runPointWise(targetPointA, targetPointB, targetPointC, obstacleModel, skinModel)
+    #(score, mind, mindp) = logic.runPointWise(targetPointA, targetPointB, targetPointC, obstacleModel, skinModel)
+    (score, mind, mindp) = logic.runPointWise(targetPointA, obstacleModel, skinModel)
 
     self.minimumDistance.text = mind
+
+
+    self.colorMapCheckBox.checked = True
+    self.colorMapCheckBox.enabled = True
+    self.onCheckColorMappedSkin()
           
 #    markupNode = self.minimumDistancePoint.currentNode()
 #   if markupNode != None:
@@ -325,6 +358,37 @@ class PortPlanningAnalysisWidget:
       
     #  end = time.time()
     # print end - start
+
+  def onCheckColorMappedSkin(self):
+    skinModel = self.skinModelSelector.currentNode()
+    modelDisplay = skinModel.GetDisplayNode()
+    scalarSetting = slicer.qMRMLModelDisplayNodeWidget()
+    scalarSetting.setMRMLModelDisplayNode(modelDisplay)
+    displayNode = skinModel.GetModelDisplayNode()
+    displayNode.SetActiveScalarName("Normals")
+
+    visible = 1
+    invisible = 0
+    
+    if self.colorMapCheckBox.checked == True:
+      scalarSetting.setScalarsVisibility(visible)
+
+      # Need to reload the skin model after "displayNode.SetActiveScalarName("Normals")" 
+      # to display color map correctly 
+      displayNode.SetActiveScalarName("Colors")
+      scalarSetting.setScalarsVisibility(visible)
+            
+      self.coloredSkinModelOpacitySlider.enabled = True
+    else:
+      scalarSetting.setScalarsVisibility(invisible)
+      self.coloredSkinModelOpacitySlider.enabled = False
+
+  def skinModelOpacitySliderValueChanged(self,newValue):
+    if(self.skinModelSelector.currentNode() != None):
+        skinModel = self.skinModelSelector.currentNode()
+        modelDisplay = skinModel.GetDisplayNode()
+        modelDisplay.SetOpacity(newValue/1000.0)
+        self.coloredSkinModelOpacitySlider.value = newValue
 
 
   def onReload(self,moduleName="PortPlanningAnalysis"):
@@ -464,11 +528,16 @@ class PortPlanningAnalysisLogic:
     annotationLogic.CreateSnapShot(name, description, type, self.screenshotScaleFactor, imageData)
 
 
-  def calcApproachScore(self, pointA, pointB, pointC, skinPolyData, obstacleBspTree, skinModelNode=None):
+  #def calcApproachScore(self, pointA, pointB, pointC, skinPolyData, obstacleBspTree, skinModelNode=None):
+  #def calcApproachScore(self, pointA, skinPolyData, obstacleBspTree, skinModelNode=None):
+  def calcApproachScore(self, targetPointNode, skinPolyData, obstacleBspTree, skinModelNode=None):
 
-    pTargetA = pointA
-    pTargetB = pointB
-    pTargetC = pointC
+    #pTargetA = targetPointNode.GetMarkupPointVector(0, 0)
+    tListNumber = targetPointNode.GetNumberOfFiducials()
+
+    #pTargetA = pointA
+    #pTargetB = pointB
+    #pTargetC = pointC
     polyData = skinPolyData
     nPoints = polyData.GetNumberOfPoints()
     nCells = polyData.GetNumberOfCells()
@@ -506,7 +575,18 @@ class PortPlanningAnalysisLogic:
 
     minDistance = -1;
 
+    #iDA = 0
+    #iDAFlag = 0
+    #d = 0
+
     for index in range(nCells):
+
+      iDA = 0
+      iDAFlag = 0
+      d = 0
+      i = 0
+      j = 0
+
       cell = polyData.GetCell(index)
       if cell.GetCellType() == vtk.VTK_TRIANGLE:
         area = cell.ComputeArea()
@@ -515,14 +595,23 @@ class PortPlanningAnalysisLogic:
         polyData.GetPoint(ids.GetId(1), cp1)
         polyData.GetPoint(ids.GetId(2), cp2)
         vtk.vtkTriangle.TriangleCenter(cp0, cp1, cp2, pSurface)
-        iDA = bspTree.IntersectWithLine(pSurface, pTargetA, tolerance, t, x, pcoords, subId)
-        iDB = bspTree.IntersectWithLine(pSurface, pTargetB, tolerance, t, x, pcoords, subId)
-        iDC = bspTree.IntersectWithLine(pSurface, pTargetC, tolerance, t, x, pcoords, subId)
-                
-        if iDA < 1 and iDB <1 and iDC < 1:
+        
+        #####
+        for i in range(0,tListNumber,1):
+            pTargetA = targetPointNode.GetMarkupPointVector(i, 0)
+            iDA = bspTree.IntersectWithLine(pSurface, pTargetA, tolerance, t, x, pcoords, subId)
+            if iDA >= 1:
+                iDAFlag = 10
+             
+        #####
+        if iDAFlag < 1:
           if skinModelNode != None:
-            d = (vtk.vtkMath.Distance2BetweenPoints(pSurface, pTargetA) + vtk.vtkMath.Distance2BetweenPoints(pSurface, pTargetB) + vtk.vtkMath.Distance2BetweenPoints(pSurface, pTargetC)) / 3
+            for j in range(0,tListNumber,1):
+                pTargetA = targetPointNode.GetMarkupPointVector(j, 0)
+                d += (vtk.vtkMath.Distance2BetweenPoints(pSurface, pTargetA))
+            d = d / tListNumber 
             d = math.sqrt(d)
+
             if 100 < d < 240: 
               if d < minDistance or minDistance < 0:
                 minDistance = d
@@ -603,18 +692,20 @@ class PortPlanningAnalysisLogic:
 
 
 
-  def runPointWise(self, targetPointANode, targetPointBNode, targetPointCNode, obstacleModelNode, skinModelNode):
+  #def runPointWise(self, targetPointANode, targetPointBNode, targetPointCNode, obstacleModelNode, skinModelNode):
+  def runPointWise(self, targetPointANode, obstacleModelNode, skinModelNode):
     """
     Run point-wise analysis
     """
 
     print ("runPointWise()")
-    tPointA = targetPointANode.GetMarkupPointVector(0, 0)
-    pTargetA = [tPointA[0], tPointA[1], tPointA[2]]
-    tPointB = targetPointBNode.GetMarkupPointVector(0, 0)
-    pTargetB = [tPointB[0], tPointB[1], tPointB[2]]
-    tPointC = targetPointCNode.GetMarkupPointVector(0, 0)
-    pTargetC = [tPointC[0], tPointC[1], tPointC[2]]    
+    #tPointA = targetPointANode.GetMarkupPointVector(0, 0)
+    #pTargetA = [tPointA[0], tPointA[1], tPointA[2]]
+    #tPointB = targetPointBNode.GetMarkupPointVector(0, 0)
+    #pTargetB = [tPointB[0], tPointB[1], tPointB[2]]
+    #tPointC = targetPointCNode.GetMarkupPointVector(0, 0)
+    #pTargetC = [tPointC[0], tPointC[1], tPointC[2]]
+
     poly = skinModelNode.GetPolyData()
     polyDataNormals = vtk.vtkPolyDataNormals()
     polyDataNormals.SetInputData(poly)
@@ -626,7 +717,9 @@ class PortPlanningAnalysisLogic:
     bspTree.SetDataSet(obstacleModelNode.GetPolyData())
     bspTree.BuildLocator()
 
-    (score, mind, mindp) = self.calcApproachScore(pTargetA, pTargetB, pTargetC, polyData, bspTree, skinModelNode)
+    #(score, mind, mindp) = self.calcApproachScore(pTargetA, pTargetB, pTargetC, polyData, bspTree, skinModelNode)
+    #(score, mind, mindp) = self.calcApproachScore(pTargetA, polyData, bspTree, skinModelNode)
+    (score, mind, mindp) = self.calcApproachScore(targetPointANode, polyData, bspTree, skinModelNode)
 
     print ("Approach Score (<accessible area>) = %f" % (score))
     print ("Minmum Distance = %f" % (mind))
